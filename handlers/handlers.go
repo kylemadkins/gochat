@@ -6,6 +6,8 @@ import (
 
 	"github.com/CloudyKit/jet/v6"
 	"github.com/gorilla/websocket"
+
+	"github.com/kylemadkins/gochat/chat"
 )
 
 var views = jet.NewSet(
@@ -25,19 +27,6 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type WsResponse struct {
-	Action      string `json:"action"`
-	Message     string `json:"message"`
-	MessageType string `json:"message_type"`
-}
-
-type WsPayload struct {
-	Username string          `json:"username"`
-	Action   string          `json:"action"`
-	Message  string          `json:"message"`
-	Conn     *websocket.Conn `json:"-"`
-}
-
 func Home(w http.ResponseWriter, r *http.Request) {
 	err := renderPage(w, "index.jet", nil)
 	if err != nil {
@@ -50,12 +39,17 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	chat.ConnManager.Add(ws, "")
 	log.Println("Client connected")
-	resp := WsResponse{Message: "Connected to server!"}
+	resp := chat.ChatResponse{Message: "Connected to server!"}
+
 	err = ws.WriteJSON(resp)
 	if err != nil {
 		log.Println(err)
 	}
+
+	go chat.ListenForMessages(ws)
 }
 
 func renderPage(w http.ResponseWriter, tmpl string, vars jet.VarMap) error {
@@ -64,10 +58,12 @@ func renderPage(w http.ResponseWriter, tmpl string, vars jet.VarMap) error {
 		log.Println(err)
 		return err
 	}
+
 	err = view.Execute(w, vars, nil)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
+
 	return nil
 }
