@@ -16,7 +16,7 @@ func NewConnectionManager() *ConnectionManager {
 	return &cm
 }
 
-func (cm *ConnectionManager) Add(conn *websocket.Conn, v string) {
+func (cm *ConnectionManager) Set(conn *websocket.Conn, v string) {
 	cm.connections[conn] = v
 }
 
@@ -33,4 +33,12 @@ func (cm *ConnectionManager) Broadcast(json interface{}) {
 			cm.Delete(conn)
 		}
 	}
+}
+
+func (cm *ConnectionManager) GetUsers() []string {
+	users := make([]string, 0)
+	for _, username := range cm.connections {
+		users = append(users, username)
+	}
+	return users
 }

@@ -40,7 +40,7 @@ func Ws(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	chat.ConnManager.Add(ws, "")
+	chat.ConnManager.Set(ws, "")
 	log.Println("Client connected")
 	resp := chat.ChatResponse{Message: "Connected to server!"}
 

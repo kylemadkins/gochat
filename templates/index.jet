@@ -30,7 +30,7 @@
         <div class="col-md-8">
           <h3>Chat</h3>
 
-          <div class="form-group">
+          <form class="form-group">
             <label for="username">Username</label>
             <input
               type="text"
@@ -54,10 +54,11 @@
             <hr />
 
             <div id="output" class="chatbox"></div>
-          </div>
+          </form>
         </div>
         <div class="col-md-4">
           <h3>Who's Online</h3>
+          <div id="users"></div>
         </div>
       </div>
     </div>
@@ -68,6 +69,16 @@
       crossorigin="anonymous"
     ></script>
     <script>
+      function renderUsers(users) {
+        const usersEl = document.getElementById("users");
+        usersEl.innerHTML = "";
+        users.forEach(function (user) {
+          const div = document.createElement("div");
+          div.appendChild(document.createTextNode(user));
+          usersEl.appendChild(div);
+        });
+      }
+
       window.addEventListener("load", function () {
         const socket = new WebSocket("ws://127.0.0.1:8000/ws");
 
@@ -76,7 +87,22 @@
         });
 
         socket.addEventListener("message", function (message) {
-          console.log(JSON.parse(message.data));
+          const m = JSON.parse(message.data);
+          switch (m.event) {
+            case "list_users":
+              renderUsers(m.connected_users);
+              break;
+          }
+        });
+
+        usernameEl = document.getElementById("username");
+        usernameEl.addEventListener("change", function (evt) {
+          socket.send(
+            JSON.stringify({
+              event: "username",
+              username: evt.target.value,
+            })
+          );
         });
       });
     </script>
